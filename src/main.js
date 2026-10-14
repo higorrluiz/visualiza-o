@@ -1,11 +1,11 @@
-import { Dados } from './db';
-import { AGREGADOS_SQL, nomePt } from './paises';
-import { drawCandyA } from './candyA';
-import { drawCandyB } from './candyB';
-import { drawPopA } from './popA';
-import { drawPopB } from './popB';
-import { drawCoasterA } from './coasterA';
-import { drawCoasterB } from './coasterB';
+import { Dados } from './db.js';
+import { AGREGADOS_SQL, nomePt } from './paises.js';
+import { drawCandyA } from './candyA.js';
+import { drawCandyB } from './candyB.js';
+import { drawPopA } from './popA.js';
+import { drawPopB } from './popB.js';
+import { drawCoasterA } from './coasterA.js';
+import { drawCoasterB } from './coasterB.js';
 async function main() {
   // Abre o DuckDB
   const db = new Dados();

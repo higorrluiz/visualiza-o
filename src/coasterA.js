@@ -1,5 +1,5 @@
 import * as d3 from 'd3';
-import { paisPt } from './paises';
+import { paisPt } from './paises.js';
 
 // Desenha o ranking de quedas em formato lollipop (linha + ponto).
 // "dados": [{ nome, pais, queda }] ordenado da maior para a menor queda

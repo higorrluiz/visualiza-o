@@ -1,5 +1,5 @@
 import * as d3 from 'd3';
-import { paisPt } from './paises';
+import { paisPt } from './paises.js';
 
 // Desenha quantas montanhas-russas cada país tem no ranking.
 // "dados": [{ pais, qtd, maior }] ordenado por quantidade

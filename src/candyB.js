@@ -1,5 +1,5 @@
 import * as d3 from 'd3';
-import { GRADE } from './estados';
+import { GRADE } from './estados.js';
 
 // Desenha o tile grid map: um quadrado por estado, colorido pelo doce campeão.
 // "estados": [{ estado, doce }]   "ordemDoces": doces do mais ao menos frequente
