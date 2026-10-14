@@ -4,7 +4,8 @@ import { drawCandyA } from './candyA';
 import { drawCandyB } from './candyB';
 import { drawPopA } from './popA';
 import { drawPopB } from './popB';
-
+import { drawCoasterA } from './coasterA';
+import { drawCoasterB } from './coasterB';
 async function main() {
   // Abre o DuckDB
   const db = new Dados();
@@ -28,7 +29,33 @@ async function main() {
   `);
   drawCandyB('#candyB', candyB, candyA.map(d => d.doce));
 
-  // ==================== Caso 2: montanhas-russas (depois) ====================
+    // ==================== Caso 2: montanhas-russas ====================
+  await db.loadCsv('montanhas', '/data/montanhas_russas.csv');
+
+  // Validação: o ranking tem 13 atrações
+  console.log('Linhas em montanhas:', await db.query('SELECT count(*) AS n FROM montanhas'));
+
+  // Design A: todas as atrações ordenadas pela queda (desempate pelo nome)
+  const coasterA = (await db.query(`
+    SELECT "Name" AS nome, "Country" AS pais, "Drop (ft)" AS queda
+    FROM montanhas
+    ORDER BY queda DESC, nome
+  `)).map(d => ({ nome: d.nome, pais: d.pais, queda: Number(d.queda) }));
+
+  // Média das quedas (linha de referência do gráfico)
+  const [{ media }] = await db.query(`SELECT avg("Drop (ft)") AS media FROM montanhas`);
+  console.log('Coaster A:', coasterA, 'média:', Number(media));
+  drawCoasterA('#coasterA', coasterA, Number(media));
+
+  // Design B: quantidade de atrações e maior queda por país
+  const coasterB = (await db.query(`
+    SELECT "Country" AS pais, count(*) AS qtd, max("Drop (ft)") AS maior
+    FROM montanhas
+    GROUP BY "Country"
+    ORDER BY qtd DESC, maior DESC
+  `)).map(d => ({ pais: d.pais, qtd: Number(d.qtd), maior: Number(d.maior) }));
+  console.log('Coaster B:', coasterB);
+  drawCoasterB('#coasterB', coasterB);
 
   // ==================== Caso 3: população mundial ====================
   await db.loadCsv('populacao', '/data/populacao.csv');
