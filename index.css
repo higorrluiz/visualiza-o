@@ -1,0 +1,23 @@
+body {
+    margin: 20px;
+    font-family: 'Times New Roman', Times, serif;
+    font-size: 1.25em;
+}
+
+section {
+    margin-bottom: 60px;
+}
+
+svg {
+    display: block;
+    margin: 10px 0;
+    background-color: #ffffff;
+    border-radius: 8px;
+    border: #bfbfbf solid 1px;
+    width: 800px;
+    height: 400px;
+}
+
+#popB {
+    height: 450px;   /* um pouco mais alto, para os rótulos não se sobreporem */
+}
