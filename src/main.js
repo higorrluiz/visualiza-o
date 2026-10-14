@@ -6,6 +6,7 @@ import { drawPopA } from './popA.js';
 import { drawPopB } from './popB.js';
 import { drawCoasterA } from './coasterA.js';
 import { drawCoasterB } from './coasterB.js';
+
 async function main() {
   // Abre o DuckDB
   const db = new Dados();
@@ -15,27 +16,45 @@ async function main() {
   await db.loadCsv('doces', '/data/doces.csv');
   console.log('Linhas em doces:', await db.query('SELECT count(*) AS n FROM doces'));
 
-  const candyA = (await db.query(`
+  // Campeões por estado: contagem de 1º lugar por doce.
+  // Só serve para definir a ordem da legenda e das cores do Design B.
+  const campeoes = (await db.query(`
     SELECT "1st Place 2024" AS doce, count(*) AS total
     FROM doces
     GROUP BY doce
     ORDER BY total DESC
   `)).map(d => ({ doce: d.doce, total: Number(d.total) }));
+
+  // Design A (mapa de calor): quantos estados deram a cada doce o 1º, 2º e 3º lugar.
+  // UNION ALL empilha as três colunas de ranking numa só (doce, lugar).
+  const candyA = (await db.query(`
+    SELECT doce, lugar, count(*) AS n
+    FROM (
+      SELECT "1st Place 2024" AS doce, 1 AS lugar FROM doces
+      UNION ALL
+      SELECT "2nd Place 2024", 2 FROM doces
+      UNION ALL
+      SELECT "3rd Place 2024", 3 FROM doces
+    )
+    GROUP BY doce, lugar
+  `)).map(d => ({ doce: d.doce, lugar: Number(d.lugar), n: Number(d.n) }));
+  console.log('Candy A:', candyA);
   drawCandyA('#candyA', candyA);
 
+  // Design B (tile grid map): doce campeão de cada estado
   const candyB = await db.query(`
     SELECT "State Name" AS estado, "1st Place 2024" AS doce
     FROM doces
   `);
-  drawCandyB('#candyB', candyB, candyA.map(d => d.doce));
+  drawCandyB('#candyB', candyB, campeoes.map(d => d.doce));
 
-    // ==================== Caso 2: montanhas-russas ====================
+  // ==================== Caso 2: montanhas-russas ====================
   await db.loadCsv('montanhas', '/data/montanhas_russas.csv');
 
   // Validação: o ranking tem 13 atrações
   console.log('Linhas em montanhas:', await db.query('SELECT count(*) AS n FROM montanhas'));
 
-  // Design A: todas as atrações ordenadas pela queda (desempate pelo nome)
+  // Design A (lollipop): todas as atrações ordenadas pela queda (desempate pelo nome)
   const coasterA = (await db.query(`
     SELECT "Name" AS nome, "Country" AS pais, "Drop (ft)" AS queda
     FROM montanhas
@@ -47,13 +66,23 @@ async function main() {
   console.log('Coaster A:', coasterA, 'média:', Number(media));
   drawCoasterA('#coasterA', coasterA, Number(media));
 
-  // Design B: quantidade de atrações e maior queda por país
+  // Design B (dot plot): uma linha por atração, com a contagem e a maior queda do país.
+  // As funções de janela (OVER PARTITION BY) calculam por país sem juntar as linhas.
   const coasterB = (await db.query(`
-    SELECT "Country" AS pais, count(*) AS qtd, max("Drop (ft)") AS maior
+    SELECT "Name" AS nome,
+           "Country" AS pais,
+           "Drop (ft)" AS queda,
+           count(*) OVER (PARTITION BY "Country") AS qtd,
+           max("Drop (ft)") OVER (PARTITION BY "Country") AS maior
     FROM montanhas
-    GROUP BY "Country"
-    ORDER BY qtd DESC, maior DESC
-  `)).map(d => ({ pais: d.pais, qtd: Number(d.qtd), maior: Number(d.maior) }));
+    ORDER BY qtd DESC, maior DESC, queda DESC
+  `)).map(d => ({
+    nome: d.nome,
+    pais: d.pais,
+    queda: Number(d.queda),
+    qtd: Number(d.qtd),
+    maior: Number(d.maior),
+  }));
   console.log('Coaster B:', coasterB);
   drawCoasterB('#coasterB', coasterB);
 
